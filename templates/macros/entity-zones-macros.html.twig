@@ -1,0 +1,39 @@
+{% macro render_zones(zones) %}
+  {% import _self as macros %}
+
+  {# Configuración del wrapper global #}
+  {% set wrapper_tag = zones['#wrapper_tag']|default('div') %}
+  {% set wrapper_attributes = create_attribute(zones['#wrapper_attributes']|default({})) %}
+
+  {% set visible_zones = [] %}
+  {% for zone_name, zone in zones %}
+    {% if zone_name starts with('#') %}
+      {# Nada que hacer aquí, simplemente no procesamos metadatos #}
+    {% elseif zone.fields is defined and zone.fields|length > 0 %}
+      {% set visible_zones = visible_zones|merge([{ name: zone_name, zone: zone }]) %}
+    {% endif %}
+  {% endfor %}
+
+  {% if visible_zones|length > 0 %}
+    <{{ wrapper_tag }}{{ wrapper_attributes }}>
+      {% for item in visible_zones %}
+        {% set attributes = create_attribute(item.zone['#attributes']|default({})) %}
+        <div{{ attributes }}>
+          {{ macros.render_zone_fields(item.zone.fields) }}
+        </div>
+      {% endfor %}
+    </{{ wrapper_tag }}>
+  {% endif %}
+{% endmacro %}
+
+
+
+
+
+
+
+{% macro render_zone_fields(zone) %}
+  {% for field_name, field in zone %}
+      {{- field|render -}}
+  {% endfor %}
+{% endmacro %}

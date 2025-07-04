@@ -1,0 +1,27 @@
+zones:
+  header:
+    field_imagen:
+      linked: true
+  content:
+    title:
+      tag: h2
+      class: 'title text-xl card-title'
+      link: true
+      itemprop: headline
+    field_cuerpo: ~
+  footer: {}
+
+zones_format:
+  __wrapper__:
+    _tag: article
+    class: "custom-card custom-card--node card"
+    role: "article"
+    aria-label: "Artículo destacado"
+  header:
+    class: "custom-card__content card-header"
+    data-region: "header"
+  content:
+    class: "custom-card__content card-body"
+  footer:
+    class: "zona-footer"
+    id: "pie-de-articulo"

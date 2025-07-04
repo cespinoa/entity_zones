@@ -1,0 +1,5 @@
+name: 'Entity zones'
+type: module
+description: 'Define display zones for entities via YAML and integrates with view modes.'
+package: Custom
+core_version_requirement: ^10 || ^11

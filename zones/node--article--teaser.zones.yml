@@ -1,0 +1,30 @@
+zones:
+  header:
+    field_image: ~
+  content:
+    title:
+      tag: h2
+      class: 'title text-xl card-title'
+      link: true
+      itemprop: headline
+    custom_date:
+      template: '<div class="custom-date-class">{{ custom_date_value }}</div>'
+      context:
+        custom_date_value: '@custom_date'
+  footer:
+    links: ~
+
+zones_format:
+  __wrapper__:
+    _tag: article
+    class: "custom-card custom-card--node card"
+    role: "article"
+    aria-label: "Artículo destacado"
+  header:
+    class: "custom-card__content card-header"
+    data-region: "header"
+  content:
+    class: "custom-card__content card-body"
+  footer:
+    class: "zona-footer"
+    id: "pie-de-articulo"

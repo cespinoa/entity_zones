@@ -1,0 +1,129 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for Entity zones module.
+ */
+
+
+/**
+ * Implements hook_theme().
+ */
+function entity_zones_theme($existing, $type, $theme, $path) {
+  $definitions = [];
+
+  /** @var \Drupal\entity_zones\Service\ZoneDefinitionLocator $locator */
+  $locator = \Drupal::service('entity_zones.zone_locator');
+  $templates = $locator->findAllZonedTemplates();
+  
+  foreach ($templates as $template_data) {
+
+      extract($template_data);
+
+      $view_mode_manager = \Drupal::service('entity_zones.view_mode_manager');
+      $view_mode_manager->ensure($entity_type, $view_mode);
+
+      $preprocess = $existing[$entity_type]['preprocess functions'] ?? [];
+      $default_preprocess = "template_preprocess_$entity_type";
+      if (!in_array($default_preprocess, $preprocess)) {
+        $preprocess[] = $default_preprocess;
+      }
+
+      $preprocess[] = 'entity_zones_preprocess_zoned';
+
+      $definitions[$theme_hook] = [
+        'render element' => 'elements',
+        'path' => $path,
+        'template' => $template,
+        'preprocess functions' => $preprocess,
+      ];
+
+  }
+
+  return $definitions;
+}
+
+/**
+ * Implements hook_theme_suggestions_alter().
+ */
+function entity_zones_theme_suggestions_alter(array &$suggestions, array $variables, $hook) {
+  
+  if (!isset($variables['elements']['#view_mode']) || !isset($variables['elements']['#' . $hook])) {
+    return;
+  }
+
+  $entity = $variables['elements']['#' . $hook];
+  if (!is_object($entity) || !method_exists($entity, 'getEntityTypeId')) {
+    return;
+  }
+
+  $entity_type = $entity->getEntityTypeId();
+  $entity_type_definition = \Drupal::entityTypeManager()->getDefinition($entity_type);
+
+  $parts = [$entity_type];
+  if ($entity_type_definition->hasKey('bundle')) {
+    $parts[] = $entity->bundle();
+  }
+
+  $parts[] = $variables['elements']['#view_mode'];
+  $parts[] = 'zoned';
+  $pattern = implode('--', $parts);
+  $pattern = str_replace('_', '-', $pattern);
+
+  /** @var \Drupal\entity_zones\Service\ZoneDefinitionLocator $locator */
+  $locator = \Drupal::service('entity_zones.zone_locator');
+  $templates = $locator->findAllZonedTemplates();
+
+  foreach($templates as $template_data){
+
+    if($template_data['template'] === $pattern){
+      $suggestion = str_replace('-', '_', $pattern);
+      $suggestions[] = $suggestion;
+    }
+  }
+
+}
+
+
+/**
+ * Preprocess común para plantillas zonificadas.
+ */
+function entity_zones_preprocess_zoned(array &$variables, string $hook){
+
+  /** @var \Drupal\entity_zones\Service\ZoneDefinitionLocator $locator */
+  $locator = \Drupal::service('entity_zones.zone_locator');
+  $templates = $locator->findAllZonedTemplates();
+
+  $entity_type = $hook;
+  $variables[$entity_type] = $variables['elements']['#' . $entity_type];
+  $entity = $variables[$entity_type];
+  $bundle = $entity->bundle();
+  if ($bundle === $entity_type) {
+    $bundle = NULL;
+  }
+  $view_mode = $variables['elements']['#view_mode'];
+
+  if ($entity_type === 'node'){
+    $variables['content']['title'] = $variables['label'];
+  }
+  elseif ($entity_type === 'user') {
+    $variables['content']['title'] = $entity->getDisplayName();
+  }
+  if ($entity_type === 'taxonomy_term'){
+    $variables['content']['title'] = $entity->label();
+  }
+
+  
+  /** @var \Drupal\entity_zones\Service\ZonedEntityRenderer $renderer */
+  $renderer = \Drupal::service('entity_zones.renderer');
+  $config = $renderer->getZonesFromFile($entity_type, $bundle, $view_mode);
+
+  $zones = $config['zones'] ?? [];
+  $format = $config['zones_format'] ?? [];
+
+  $variables['zones'] = $renderer->prepareZones($variables['content'], $zones, $format, $entity);
+  
+}
+
+
+

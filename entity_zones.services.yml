@@ -1,0 +1,18 @@
+services:
+  entity_zones.renderer:
+    class: Drupal\entity_zones\Service\ZonedEntityRenderer
+    arguments:
+      - '@extension.list.module'
+      - '@file_system'
+
+  entity_zones.view_mode_manager:
+    class: Drupal\entity_zones\ViewMode\ZoneViewModeManager
+    arguments:
+      - '@entity_type.manager'
+
+  entity_zones.zone_locator:
+    class: Drupal\entity_zones\Service\ZoneDefinitionLocator
+    arguments:
+      - '@file_system'
+      - '@stream_wrapper_manager'
+      - '@extension.path.resolver'

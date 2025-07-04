@@ -1,0 +1,10 @@
+zones:
+  header:
+    field_image: ~
+  content:
+    title:
+      tag: h2
+      class: 'title text-xl card-title'
+      link: false
+      itemprop: headline
+  footer: {}
